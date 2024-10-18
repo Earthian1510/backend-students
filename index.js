@@ -1,89 +1,79 @@
-const express = require('express')
-const cors = require('cors')
-const app = express()
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
-const { initializeDatabase } = require('./db/db.connection')
-const { Student } = require('./models/students.model')
+const { initializeDatabase } = require('./db/db.connection');
+const { Student } = require('./models/students.model');
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
-initializeDatabase()
+initializeDatabase();
 
 app.get("/", (req, res) => {
-    res.send("Hello, Express!")
-})
+    res.send("Hello, Express!");
+});
 
 app.get("/students", async (req, res) => {
-    try{
+    try {
         const students = await Student.find();
-        res.json(students)
+        res.json(students);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
     }
-    catch (error){
-        res.status(500).json({ error: "Internal server error"})
-    }
-})
+});
 
-// Post API
 app.post("/students", async (req, res) => {
-    const { name, age, grade } = req.body 
+    const { name, age, grade } = req.body;
 
-    try{
-        const student = new Student({ name, age, grade })
+    try {
+        const student = new Student({ name, age, grade });
         await student.save();
-        res.status(201).json(student)
+        res.status(201).json(student);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
-    catch(error){
-        res.status(500).json({ error: "Internal Server Error"})
-    }
-})
+});
 
-// Update API 
 app.put("/students/:id", async (req, res) => {
     const studentId = req.params.id;
-    const updatedStudentData = req.body 
+    const updatedStudentData = req.body;
 
-    try{
+    try {
         const updatedStudent = await Student.findByIdAndUpdate(
             studentId,
             updatedStudentData,
             { new: true }
-        )
+        );
 
-        if(!updatedStudent){
-            return res.status(404)
-            .json({ message: "student not found"})
+        if (!updatedStudent) {
+            return res.status(404).json({ message: "Student not found" });
         }
 
-        res.status(200).json(updatedStudent)
+        res.status(200).json(updatedStudent);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Error" });
     }
-    catch(error) {
-        console.error(error)
-        res.status(500).json({ error: "Internal Error"})
-    }
-})
+});
 
-// Delete API
 app.delete("/students/:id", async (req, res) => {
     const studentId = req.params.id;
-    try{
-        const deletedStudent = await Student.findByIdAndRemove(studentId)
-        if(!deletedStudent){
-            return res.status(404).json({ error: 'Student not found'})
+    try {
+        const deletedStudent = await Student.findByIdAndDelete(studentId);
+        if (!deletedStudent) {
+            return res.status(404).json({ error: 'Student not found' });
         }
-        res.status(200).json({ message: "Student deleted successfully", student: deletedStudent })
+        res.status(200).json({ message: "Student deleted successfully", student: deletedStudent });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    catch(error) {
-        console.error(error)
-        req.status(500).json({ error: 'Internal server error'})
-    }
-})
-
-
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
-})
-
-
+    console.log(`Server is running on port ${PORT}`);
+});

@@ -24,8 +24,21 @@ app.get("/students", async (req, res) => {
     }
 });
 
+// GET student by ID 
+app.get('/students/:id', async (req, res) => {
+    try{
+        const studentId = req.params.id;
+        const student = await Student.findById(studentId)
+        res.json(student)
+    }
+    catch(error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+})
+
 app.post("/students", async (req, res) => {
-    const { name, age, grade } = req.body;
+    const { name, age, grade, gender } = req.body;
 
     try {
         const student = new Student({ name, age, grade });
